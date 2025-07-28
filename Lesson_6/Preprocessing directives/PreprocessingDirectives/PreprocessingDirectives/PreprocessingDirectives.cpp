@@ -1,12 +1,17 @@
 ﻿
 #include <iostream>
 #include<Windows.h>
-#include "AddFunc.h"
+//#include "AddFunc.h"
 
 #define MODE 1
 
 #ifndef MODE                        // Проверка на создание MODE
 #error constant MODE required
+#elif (MODE == 1)
+ int AddDef(int a, int b)
+{
+    return a + b;
+}
 #endif
 
 namespace in
@@ -31,7 +36,7 @@ int main(int argc, char** argv)
     std::cin >> in::num1;
     std::cout << "Введите число 2: "; 
     std::cin >> in::num2;
-    std::cout << "Результат сложения: " << Add(in::num1, in::num2) << std::endl;
+    std::cout << "Результат сложения: " << AddDef(in::num1, in::num2) << std::endl;
 
 #else
 
