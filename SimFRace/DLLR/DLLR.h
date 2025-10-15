@@ -24,14 +24,14 @@ namespace  DinLR
     class DLLR_API Transport {
 
     public:
-        Transport() {};
+        Transport() = delete; // конструктор по умолчанию. = delete запрет вызова в программе. 
         virtual ~Transport() = default;
 
         virtual void calculateTime(double distance) = 0; // время для дистанции
         virtual int getTypeRace() const = 0;             //Тип транспорта
         virtual double getDistance() const = 0;          //Дистанция
         virtual void setDistance(double _distanse) = 0;  //Сброс значения дистанции
-        virtual std::string getName() const = 0;         //Имя
+        virtual std::string& getName() const = 0;         //Имя
                       
 
         int ID{ 0 };    //Номер транспорта
