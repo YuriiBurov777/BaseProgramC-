@@ -1,7 +1,7 @@
-#include "Sarr.h"
+﻿#include "Sarr.h"
 
 void smart_array::add_element(int element) {
-	// ���� ������ ��������, ����������� �������
+	// Если массив заполнен, увеличиваем емкость
 	if (size_ >= capacity_) {
 		resize();
 	}
@@ -10,8 +10,8 @@ void smart_array::add_element(int element) {
 }
 
 int smart_array::get_element(size_t index) const {
-	if ((index >= size_) or (index < 0)) {
-		throw std::out_of_range("������ ��� ���������");
+	if (index >= size_)  {                                  // удалена проверка на отрицательные значения index
+		throw std::out_of_range("Индекс вне диапазона");
 	}
 	return data_[index];
 }
@@ -36,13 +36,16 @@ void smart_array::print() const {
 }
 
 void smart_array::resize() {
-	capacity_ *= 2;
-	int* new_data = new int[capacity_];
+	if (capacity_ == 0) {                            // Проверяем на ноль. P.S.  
+		capacity_ = 1;								 // Если capacity_ == 0 при первом
+	}											     // вызове, получится new int[0],
+	capacity_ *= 2;									 // а потом memcpy с нулевым 
+	int* new_data = new int[capacity_];				 // указателем → segmentation fault.
 
-	// �������� ������������ ������
-	std::memcpy(new_data, data_, size_ * sizeof(int));
+	// Копируем существующие данные
+	std::copy(data_, data_+size_, new_data);  // Замена memcy на copy безопасный способ копирования
 
-	// ����������� ������ ������ � ��������� ���������
+	// Освобождаем старую память и обновляем указатель
 	delete[] data_;
 	data_ = new_data;
 }

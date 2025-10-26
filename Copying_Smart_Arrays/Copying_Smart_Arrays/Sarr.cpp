@@ -18,7 +18,7 @@ smart_array& smart_array::operator=(const smart_array& other) {
 		// Копируем ДАННЫЕ (содержимое массива),  указатель не копируется!
 		// Копирует: [число,число,число] из other.data_ в new_data
 		// НЕ копирует сам указатель other.data_!
-		std::memcpy(new_data, other.data_, other.size_ * sizeof(int));
+		std::copy( other.data_, other.data_+other.size_,new_data);  // Замена memcy на copy безопасный способ копирования
 
 
 		// Освобождаем старую память
@@ -33,7 +33,7 @@ smart_array& smart_array::operator=(const smart_array& other) {
 }
 
 int smart_array::get_element(size_t index) const {
-	if ((index >= size_) or (index < 0)) {
+	if (index >= size_) {
 		throw std::out_of_range("Индекс вне диапазона");
 	}
 	return data_[index];
@@ -59,11 +59,14 @@ void smart_array::print() const {
 }
 
 void smart_array::resize() {
+	if (capacity_ == 0) {
+		capacity_ = 1;
+	}
 	capacity_ *= 2;
 	int* new_data = new int[capacity_];
 
 	// Копируем существующие данные
-	std::memcpy(new_data, data_, size_ * sizeof(int));
+	std::copy(data_,data_ + size_, new_data);           // Замена memcy на copy безопасный способ копирования
 
 	// Освобождаем старую память и обновляем указатель
 	delete[] data_;
