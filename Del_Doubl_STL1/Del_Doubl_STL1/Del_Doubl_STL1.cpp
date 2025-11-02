@@ -4,11 +4,11 @@
 #include <Windows.h>
 #include <cstdlib>
 #include <algorithm>
-#include <unordered_set>
+#include <set>
 
 //Создаем вектор и заполняем
 std::vector<int> CreateVec() {
-    int a{ 0 };
+    int inpVec{ 0 };
     int size{ 0 };
     std::vector<int> vec;
     do
@@ -28,42 +28,44 @@ std::vector<int> CreateVec() {
 
     do
     {
-        std::cin >> a;
-        vec.push_back(a);
+        std::cin >> inpVec;
+        vec.push_back(inpVec);
        // std::cout << a << std::endl;
     } while (vec.size() < size);
     return vec;
 }
 // Создаем SET для отсеивания повторов
-void CopyVecToSet(const std::vector<int> vec, std::unordered_set <int>& set) {
+void CopyVecToSet(const std::vector<int> vec, std::set <int, std::greater<int>>& set) {
     
     for (int num : vec) {
         set.insert(num);
     }
     vec.~vector();
 }
+
 //Копируем из SET в вектор без повторов
-std::vector<int> CopySetToVec( const std::unordered_set <int> set) {
-   
-    std::vector<int> vec;
-    for (int num : set) {
-        vec.push_back(num);
-    }
-    return vec;
-}
+//std::vector<int> CopySetToVec( const std::unordered_set <int> set) {
+//   
+//    std::vector<int> vec;
+//    for (int num : set) {
+//        vec.push_back(num);
+//    }
+//    return vec;
+//}
 //Сортируем вектор
-void SortVec(std::vector<int>& vec) {
-    
-    sort (vec.begin(), vec.end(),
-         [](const int a, const int b) {
-             return a > b;
-         });
-}
+//void SortVec(std::vector<int>& vec) {
+//    
+//    sort (vec.begin(), vec.end(),
+//         [](const int a, const int b) {
+//             return a > b;
+//         });
+//}
+
 //Печать результата
-void Print(std::vector<int>& vec) {
+void Print(std::set <int, std::greater<int>>& set) {
     std::cout << "\t" << std::endl;
     std::cout << "Out:" << std::endl;
-    for (auto num : vec)
+    for (auto num : set)
     {
         std::cout << num << std::endl;
     }
@@ -76,16 +78,16 @@ int main()
     auto vec = CreateVec();
 
     // Создаем SET для отсеивания повторов
-    std::unordered_set <int> set_;
+    std::set <int, std::greater<int>> set_;
     CopyVecToSet(vec, set_);
     
-    //Копируем из SET в вектор без повторов
-    vec = CopySetToVec(set_);
+    ////Копируем из SET в вектор без повторов
+    //vec = CopySetToVec(set_);
 
-    //Сортируем вектор
-    SortVec(vec);
+    ////Сортируем вектор
+    //SortVec(vec);
 
     //Печать результата
-    Print(vec);
+    Print(set_);
 }
 
