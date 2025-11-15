@@ -51,7 +51,7 @@ public:
         return big_integer(result);
     }
 
-    // Оператор умножения на число
+    // Оператор умножения на число(строка)
     big_integer operator*(const big_integer& other) const {
         
         if (number == "0" || other.number == "0") {
@@ -92,15 +92,47 @@ public:
         return result;
     }
 
+    // Оператор умножения на число(цифра)
+    big_integer operator*( const int& Num2) const {
+
+        if (number == "0" || Num2 == 0) {
+            return big_integer("0");
+        }
+        //std::string result;
+
+            std::string temp_result;
+            int memory = 0;
+
+            // Умножаем на текущую цифру
+            for (int i = number.size() - 1; i >= 0; i--) {
+                int Num1 = number[i] - '0';
+                int Num1_Num2 = Num1 * Num2 + memory;
+                temp_result.push_back((Num1_Num2 % 10) + '0');
+                memory = Num1_Num2 / 10;
+            }
+
+            std::reverse(temp_result.begin(), temp_result.end());    
+
+        return temp_result;
+    }
+
     // Вывод
     std::string GetValue() const {
         return number;
     }
 
+
+ 
+
     private:
     std::string number;
 
 };
+
+std::ostream& operator<<(std::ostream& os, const big_integer& obj) {
+    os << obj.GetValue();
+    return os;
+}
 
 int main() {
     SetConsoleCP(1251);
@@ -117,15 +149,19 @@ int main() {
     // Тестируем перемещающий оператор присваивания
     auto number4 = big_integer("888");
     number4 = std::move(number2);  // Перемещающее присваивание
-    std::cout << "После перемещения: " << number4.GetValue() << std::endl; // 78524
+    std::cout << "После перемещения: " << number4 << std::endl; // 78524
 
     // Сложение
     auto result = number1 + number4;
-    std::cout << "Сумма: " << result.GetValue() << std::endl; // 193099
+    std::cout << "Сумма: " << result << std::endl; // 193099
 
     // Умножение
-    auto mult = number1 * number4;
-    std::cout << "Умножение: " << mult.GetValue() << std::endl; // 4583002291500572875009166000008020250000
+    auto multBigInt = number1 * number4;
+    std::cout << "Умножение: " << multBigInt << std::endl; // 4583002291500572875009166000008020250000
+
+    // Умножение2
+    auto multInt = number1 * 2;
+    std::cout << "Умножение2: " << multInt << std::endl; // 4583002291500572875009166000008020250000
 
     return 0;
 }
