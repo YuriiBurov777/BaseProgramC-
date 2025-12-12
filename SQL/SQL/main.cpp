@@ -5,6 +5,14 @@
 #include <pqxx/pqxx>
 
 
+// Добавил структуру
+struct ClientInfo {
+    int id;                             // поле для ID
+    std::string first_name;             // поле для имени
+    std::string last_name;              // поле для фамилии
+    std::string email;                  // поле для email
+    std::vector<std::string> phones;    // ВЕКТОР телефонов!
+};
 
 class ClientManager {
 private:
@@ -20,8 +28,7 @@ public:
 
         std::cout << "Connected to: " << connectt.dbname() << std::endl;
         std::cout << "\nTrying to create a table..." << std::endl;
-        // Готовим шаблоны на частоиспользуемые запросы. Prepare использовать при высоконагруженных запросах
-        //prepareQueries();
+
     }
 
     // Функция шаблонов на необходимые запросы
@@ -50,7 +57,7 @@ public:
 
     // Создание таблиц 
     void createTables() {
-        //std::cout << "\nПробуем создать таблицу...111" << std::endl;
+      
         pqxx::work txn(connectt);
        
         txn.exec(
@@ -80,7 +87,7 @@ public:
         const std::string& email) {
         pqxx::work txn(connectt);
 
-        try {
+        //try {
             // Используем шаблон. Если email уже существует БД вернет ошибку. Далее ловим ошибку и выводим на экран
             auto result = txn.exec_prepared("add_client", first, last, email);
             txn.commit();
@@ -90,26 +97,26 @@ public:
             return id;
 
         }
-        catch (const pqxx::unique_violation& e) {
-            std::cout << "Error: the email already exists" << std::endl;
-            return -1;
-        }
-    }
+        //catch (const pqxx::unique_violation& e) {
+        //    std::cout << "Error: the email already exists" << std::endl;
+        //    return -1;
+        //}
+    //}
 
     // Добавить телефон (используем подготовленный запрос)
     void addPhone(int clientId, const std::string& phone) {
         pqxx::work txn(connectt);
 
-        try {
+        //try {
             // Используем шаблон. Если телефон уже существует БД вернет ошибку. Далее ловим ошибку и выводим на экран
             txn.exec_prepared("add_phone", clientId, phone);
             txn.commit();
             std::cout << "Phone number added" << std::endl;
 
-        }
-        catch (const pqxx::unique_violation& e) {
-            std::cout << "Error: the phone already exists" << std::endl;
-        }
+       // }
+        //catch (const pqxx::unique_violation& e) {
+       //     std::cout << "Error: the phone already exists" << std::endl;
+        //}
     }
 
     // Показать всех клиентов (используем подготовленный запрос)
@@ -134,27 +141,69 @@ public:
     }
 
     // Поиск клиентов по условию (используем подготовленный запрос)
-    void searchClients(const std::string& query) {
+    //void searchClients(const std::string& query) {
+    //    pqxx::work txn(connectt);
+
+    //    std::string pattern = "%" + query + "%";
+
+    //    // Используем подготовленный запрос
+    //    auto result = txn.exec_prepared("search_clients", pattern);
+
+    //    std::cout << "\n=== Search Results: '" << query << "' ===" << std::endl;
+    //    for (auto row : result) {
+    //        std::cout << "ID: " << row["id"].as<int>() << std::endl;
+    //        std::cout << "Name: " << row["first_name"].as<std::string>() << " "
+    //            << row["last_name"].as<std::string>() << std::endl;
+    //        std::cout << "Email: " << row["email"].as<std::string>() << std::endl;
+
+    //        if (!row["phones"].is_null()) {
+    //            std::cout << "Phones: " << row["phones"].as<std::string>() << std::endl;
+    //        }
+    //        std::cout << "---" << std::endl;
+    //    }
+    //}
+
+    // Поиск клиентов по условию (используем подготовленный запрос)
+    std::vector<ClientInfo> searchClients(const std::string& query) {
         pqxx::work txn(connectt);
-
         std::string pattern = "%" + query + "%";
-
-        // Используем подготовленный запрос
         auto result = txn.exec_prepared("search_clients", pattern);
 
-        std::cout << "\n=== Search Results: '" << query << "' ===" << std::endl;
-        for (auto row : result) {
-            std::cout << "ID: " << row["id"].as<int>() << std::endl;
-            std::cout << "Name: " << row["first_name"].as<std::string>() << " "
-                << row["last_name"].as<std::string>() << std::endl;
-            std::cout << "Email: " << row["email"].as<std::string>() << std::endl;
+        std::vector<ClientInfo> clients;
 
+        for (auto row : result) {
+            ClientInfo client;
+            client.id = row["id"].as<int>();
+            client.first_name = row["first_name"].as<std::string>();
+            client.last_name = row["last_name"].as<std::string>();
+            client.email = row["email"].as<std::string>();
+
+            // Обрабатываю телефоны, если они есть
             if (!row["phones"].is_null()) {
-                std::cout << "Phones: " << row["phones"].as<std::string>() << std::endl;
+                std::string phones_str = row["phones"].as<std::string>();
+
+                // Разделил строку телефонов на вектор
+                size_t start = 0;
+                size_t end = phones_str.find(", ");
+
+                while (end != std::string::npos) {
+                    client.phones.push_back(phones_str.substr(start, end - start));
+                    start = end + 2; 
+                    end = phones_str.find(", ", start);
+                }
+
+                // Добавляю последний телефон
+                if (start < phones_str.length()) {
+                    client.phones.push_back(phones_str.substr(start));
+                }
             }
-            std::cout << "---" << std::endl;
+
+            clients.push_back(client);
         }
+
+        return clients;
     }
+
 
     // 6. Удалить клиента использую param т.к. запрос будет производиться нечасто
     void deleteClient(int clientId) {
@@ -179,7 +228,7 @@ public:
 
     // Удаление телефона
     void deletePhone(int clientId, const std::string& phoneNumber) {
-        try {
+        //try {
             pqxx::work txn(connectt);
 
             txn.exec_prepared("delete_phone", clientId, phoneNumber);
@@ -187,66 +236,98 @@ public:
 
             std::cout << "The phone deletion operation has been completed" << std::endl;
 
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error deleting the phone: " << e.what() << std::endl;
-        }
+       // }
+       // catch (const std::exception& e) {
+       //     std::cerr << "Error deleting the phone: " << e.what() << std::endl;
+       // }
     }
     
 };
 
-// Простая главная функция
+
 int main() {
 
-    try {
+     try {
         // Подключение
         std::string conn_str = "dbname=SQLCxx user=postgres password='111' host=localhost";
         ClientManager manager(conn_str);
 
         // Основные операции
         manager.createTables();
-
-        // Готовим шаблоны на частоиспользуемые запросы. Prepare использовать при высоконагруженных запросах
         manager.prepareQueries();
 
-        // Добавление клиентов с prepare
+        // Все исключения будут пойманы в main для возможной дальнейшей обработки. В каждом catсh можно дописать логику обработки ошибки
+
         int id1 = manager.addClient("Jon", "Meier", "Jon@gmail.com");
         int id2 = manager.addClient("Richard", "Schmidt", "Richard@gmail.com");
 
-        if (id1 > 0) {
-            manager.addPhone(id1, "+79161234567");
-            manager.addPhone(id1, "+74951234567");
-        }
+        manager.addPhone(id1, "+79161234567");
+        manager.addPhone(id1, "+74951234567");
 
         manager.showClients();
-
-        // Удалить номер телефона
         manager.deletePhone(1, "+79161234567");
-
-        // Поиск и отображение
         manager.showClients();
-        manager.searchClients("Jon");
 
-        // Разовые операции без prepare
+        // Поиск клиента
+        std::vector<ClientInfo> results = manager.searchClients("Jon");
+
+        std::cout << "\n=== Search Results ===" << std::endl;
+        for (const auto& client : results) {
+            std::cout << "ID: " << client.id << std::endl;
+            std::cout << "Name: " << client.first_name << " " << client.last_name << std::endl;
+            std::cout << "Email: " << client.email << std::endl;
+
+            // Вывожу телефоны если есть
+            if (!client.phones.empty()) {
+                std::cout << "Phones: ";
+                for (size_t i = 0; i < client.phones.size(); i++) {
+                    std::cout << client.phones[i];
+                    if (i < client.phones.size() - 1) {
+                        std::cout << ", ";
+                    }
+                }
+                std::cout << std::endl;
+            }
+            std::cout << "---" << std::endl;
+        }
+      
         manager.updateEmail(id1, "JonMeier@gmail.com");
-
+        manager.showClients();
+        manager.deleteClient(id2);
         manager.showClients();
 
-        //Удаление
-        manager.deleteClient(id2);  // раскомментируйте для удаления
-
-        manager.showClients();
+        // Добавляю дубликат email - исключение будет перехвачено в main
+        //manager.addClient("Jon", "Meier", "JonMeier@gmail.com");
 
     }
+    catch (const pqxx::unique_violation& e) {
+
+        std::cerr << "Database constraint violation: " << e.what() << std::endl;
+        std::cerr << "This could be a duplicate email or phone number." << std::endl;
+        return 1;
+    }
+    catch (const pqxx::foreign_key_violation& e) {
+        std::cerr << "Foreign key violation: " << e.what() << std::endl;
+        std::cerr << "Trying to reference a non-existent client." << std::endl;
+        return 1;
+    }
+    catch (const pqxx::sql_error& e) {
+        std::cerr << "SQL Error: " << e.what() << std::endl;
+        std::cerr << "Query: " << e.query() << std::endl;
+        return 1;
+    }
     catch (const std::exception& e) {
-        std::cerr << "Fault: " << e.what() << std::endl;
-        std::cout << "Checking:\n";
-        std::cout << "1. Is it running PostgreSQL\n";
-        std::cout << "2. Is there a database 'SQLCxx'\n";
-        std::cout << "3. Password correctness\n";
+        std::cerr << "General error: " << e.what() << std::endl; 
+        std::cerr << "\nChecking:\n";
+        std::cerr << "1. Is PostgreSQL running?\n";
+        std::cerr << "2. Is there a database 'SQLCxx'?\n";
+        std::cerr << "3. Password correctness\n";
+        return 1;
     }
 
     std::cout << "\nPress Enter...";
     std::cin.get();
     return 0;
 }
+
+
